@@ -17,6 +17,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class VBulletinForumImporter {
@@ -56,13 +58,16 @@ public class VBulletinForumImporter {
 
         String section = doc.body().getElementsByClass("b-post__content").first()
                 .getElementsByClass("b-post__title").text().trim().split(" ?- ?Answer")[0];
-        doc.body().getElementsByClass("b-post").stream().skip(1).map((e) -> parse(section, e))
-                .forEach((e) -> {
+        List<ForumPost> forumPosts = doc.body().getElementsByClass("b-post").stream().skip(1).map((e) -> parse(section, e))
+                .peek((e) -> {
                     e.setForum("ftcForum");
                     // TODO better versioning
                     e.setVersion("1");
-                    forumPostEsRepository.save(e);
-                });
+                }).collect(Collectors.toList());
+
+        if(forumPosts.size() > 0) {
+            forumPostEsRepository.saveAll(forumPosts);
+        }
 
         return true;
     }
@@ -75,7 +80,7 @@ public class VBulletinForumImporter {
 
         String postNo = postElement.getElementsByClass("b-post__count").first().text();
         ret.setId("ftcForum:" + category.hashCode() + ":" + postNo);
-        ret.setPostNo(postNo);
+        ret.setPostNo(Integer.parseInt(postNo.replaceAll("[^0-9]","")));
         ret.setTitle(postElement
                 .getElementsByClass("js-post__content-text").first()
                 .childNode(0).outerHtml().trim());
@@ -84,6 +89,7 @@ public class VBulletinForumImporter {
                 .getElementsByTag("time").first()
                 .attr("datetime")));
 
+        boolean foundQuestion = false;
         try {
             ret.setQuestion(postElement
                     .getElementsByClass("js-post__content-text").first()
@@ -96,8 +102,21 @@ public class VBulletinForumImporter {
                     .getElementsByClass("bbcode_postedby").first()
                     .getElementsByTag("strong").first()
                     .text());
+            foundQuestion = true;
         } catch (NullPointerException ignored) {
 
+        }
+
+        if(!foundQuestion) {
+            try {
+                ret.setQuestion(postElement
+                        .getElementsByClass("js-post__content-text").first()
+                        .getElementsByClass("bbcode_quote").first()
+                        .getElementsByClass("quote_container").first()
+                        .html());
+            } catch (NullPointerException ignored) {
+
+            }
         }
 
         Element cleanUp = postElement.getElementsByClass("js-post__content-text").first().clone();

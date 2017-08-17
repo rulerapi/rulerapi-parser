@@ -1,18 +1,33 @@
 package com.maths22.ftcmanuals.models;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.*;
+import org.springframework.data.elasticsearch.core.completion.Completion;
 
 @Document(indexName = "ftc-manuals-texts", type = "rule")
+@Setting(settingPath = "/elasticsearch/number-analyzer.json")
 public class Rule {
-    private String id;
-    private String category;
-    private String number;
-    private String title;
-    private String body;
-    private String version;
-
     @Id
+    private String id;
+    @MultiField(
+            mainField = @Field(type = FieldType.text, analyzer = "english"),
+            otherFields = {@InnerField(suffix = "keyword", type = FieldType.keyword)}
+    )
+    private String category;
+    @Field(type = FieldType.keyword)
+    private String number;
+    @MultiField(
+            mainField = @Field(type = FieldType.text, analyzer = "english"),
+            otherFields = {@InnerField(suffix = "keyword", type = FieldType.keyword)}
+    )
+    private String title;
+    @Field(type = FieldType.text, analyzer = "english")
+    private String body;
+    @Field(type = FieldType.keyword)
+    private String version;
+    @CompletionField(analyzer = "standard", searchAnalyzer = "standard")
+    private Completion suggest;
+
     public String getId() {
         return id;
     }
@@ -43,6 +58,7 @@ public class Rule {
 
     public void setNumber(String number) {
         this.number = number;
+        this.suggest = new Completion(new String[]{number});
     }
 
     public String getTitle() {
@@ -59,5 +75,13 @@ public class Rule {
 
     public void setBody(String body) {
         this.body = body;
+    }
+
+    public Completion getSuggest() {
+        return suggest;
+    }
+
+    protected void setSuggest(Completion suggest) {
+        this.suggest = suggest;
     }
 }

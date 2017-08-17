@@ -1,22 +1,39 @@
 package com.maths22.ftcmanuals.models;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.*;
 
 import java.time.LocalDateTime;
 
 @Document(indexName = "ftc-manuals-texts", type = "forum-post")
+@Setting(settingPath = "/elasticsearch/number-analyzer.json")
 public class ForumPost {
+    @Id
     private String id;
+    @Field(type = FieldType.keyword)
     private String forum;
+    @MultiField(
+            mainField = @Field(type = FieldType.text, analyzer = "english"),
+            otherFields = {@InnerField(suffix = "keyword", type = FieldType.keyword)}
+    )
     private String category;
-    private String postNo;
+    @Field(type = FieldType.Integer)
+    private int postNo;
+    @MultiField(
+            mainField = @Field(type = FieldType.text, analyzer = "english"),
+            otherFields = {@InnerField(suffix = "keyword", type = FieldType.keyword)}
+    )
     private String title;
+    @Field(type = FieldType.text, analyzer = "english")
     private String question;
+    @Field(type = FieldType.text, analyzer = "english")
     private String answer;
     private String raw;
+    @Field(type = FieldType.Date)
     private LocalDateTime posted;
+    @Field(type = FieldType.keyword)
     private String version;
+    // TODO: should these be searchable?
     private String author;
     private String questionAuthor;
 
@@ -93,11 +110,11 @@ public class ForumPost {
         this.posted = posted;
     }
 
-    public String getPostNo() {
+    public int getPostNo() {
         return postNo;
     }
 
-    public void setPostNo(String postNo) {
+    public void setPostNo(int postNo) {
         this.postNo = postNo;
     }
 

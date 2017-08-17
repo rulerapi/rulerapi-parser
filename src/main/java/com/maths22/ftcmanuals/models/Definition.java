@@ -1,17 +1,32 @@
 package com.maths22.ftcmanuals.models;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.*;
+import org.springframework.data.elasticsearch.core.completion.Completion;
 
 @Document(indexName = "ftc-manuals-texts", type = "definition")
+@Setting(settingPath = "/elasticsearch/number-analyzer.json")
 public class Definition {
-    private String id;
-    private String category;
-    private String title;
-    private String body;
-    private String version;
-
     @Id
+    private String id;
+    @MultiField(
+            mainField = @Field(type = FieldType.text, analyzer = "english"),
+            otherFields = {@InnerField(suffix = "keyword", type = FieldType.keyword)}
+    )
+    private String category;
+    @MultiField(
+            mainField = @Field(type = FieldType.text, analyzer = "english"),
+            otherFields = {@InnerField(suffix = "keyword", type = FieldType.keyword)}
+    )
+    private String title;
+    @Field(type = FieldType.text, analyzer = "english")
+    private String body;
+    @Field(type = FieldType.keyword)
+    private String version;
+    @CompletionField(analyzer = "standard", searchAnalyzer = "standard")
+    private Completion suggest;
+
+
     public String getId() {
         return id;
     }
@@ -42,6 +57,7 @@ public class Definition {
 
     public void setTitle(String title) {
         this.title = title;
+        this.suggest = new Completion(new String[]{title});
     }
 
     public String getBody() {
@@ -50,5 +66,13 @@ public class Definition {
 
     public void setBody(String body) {
         this.body = body;
+    }
+
+    public Completion getSuggest() {
+        return suggest;
+    }
+
+    protected void setSuggest(Completion suggest) {
+        this.suggest = suggest;
     }
 }

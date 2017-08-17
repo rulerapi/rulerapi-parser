@@ -71,8 +71,8 @@
         <td th:text="${post.posted}"></td>
         <td th:utext="${post.questionAuthor}"></td>
         <td th:utext="${post.author}"></td>
-        <td th:utext="${post.postNo}"></td>
-        <td th:utext="${post.title}"></td>
+        <td th:utext="|#${post.postNo}|"></td>
+        <td th:text="${post.title}"></td>
         <td th:utext="${post.question}"></td>
         <td th:utext="${post.answer}"></td>
     </tr>

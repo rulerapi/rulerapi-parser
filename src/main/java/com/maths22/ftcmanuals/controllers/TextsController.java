@@ -27,8 +27,8 @@ public class TextsController {
     @RequestMapping("/texts")
     public String list(Model model) {
         model.addAttribute("definitions", definitionEsRepository.findAll(Sort.by("category.keyword", "title.keyword")));
-        model.addAttribute("rules", ruleEsRepository.findAll(Sort.by("number.keyword")));
-        model.addAttribute("posts", forumPostEsRepository.findAll(Sort.by("forum.keyword", "category.keyword", "title.keyword")));
+        model.addAttribute("rules", ruleEsRepository.findAll(Sort.by("number")));
+        model.addAttribute("posts", forumPostEsRepository.findAll(Sort.by("forum", "category.keyword", "postNo")));
         return "texts/list";
     }
 
