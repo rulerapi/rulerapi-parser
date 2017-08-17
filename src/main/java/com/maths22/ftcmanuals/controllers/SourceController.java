@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Controller
 public class SourceController {
@@ -64,6 +65,31 @@ public class SourceController {
         if (gameManualImporter.importGameManual(src)) {
             gameManualSourceRepository.save(src);
         }
+
+        String referer = request.getHeader("Referer");
+        return "redirect:" + referer;
+    }
+
+    @RequestMapping("/sources/ingestAll")
+    public String importGameManual(HttpServletRequest request) {
+        List<GameManualSource> gmSrcs = gameManualSourceRepository.findAll();
+        gmSrcs.forEach((src) -> {
+            src.setLastRetrieved(LocalDateTime.now());
+
+            if (gameManualImporter.importGameManual(src)) {
+                gameManualSourceRepository.save(src);
+            }
+        });
+
+        List<VBulletinForumSource> vbSrcs = vBulletinForumSourceRepository.findAll();
+        vbSrcs.forEach((src) -> {
+            src.setLastRetrieved(LocalDateTime.now());
+
+            if (vBulletinForumImporter.importForumThread(src)) {
+                vBulletinForumSourceRepository.save(src);
+            }
+        });
+
 
         String referer = request.getHeader("Referer");
         return "redirect:" + referer;

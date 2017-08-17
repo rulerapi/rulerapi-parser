@@ -1,12 +1,15 @@
 package com.maths22.ftcmanuals.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.*;
 import org.springframework.data.elasticsearch.core.completion.Completion;
 
-@Document(indexName = "ftc-manuals-texts", type = "rule")
-@Setting(settingPath = "/elasticsearch/number-analyzer.json")
+@Document(indexName = "ftc-manuals-texts", type = "rule", shards = 1, replicas = 0)
 public class Rule {
+    @JsonProperty
+    private final String type = Rule.class.getSimpleName();
+
     @Id
     private String id;
     @MultiField(
@@ -14,7 +17,10 @@ public class Rule {
             otherFields = {@InnerField(suffix = "keyword", type = FieldType.keyword)}
     )
     private String category;
-    @Field(type = FieldType.keyword)
+    @MultiField(
+            mainField = @Field(type = FieldType.text, analyzer = "standard"),
+            otherFields = {@InnerField(suffix = "keyword", type = FieldType.keyword)}
+    )
     private String number;
     @MultiField(
             mainField = @Field(type = FieldType.text, analyzer = "english"),

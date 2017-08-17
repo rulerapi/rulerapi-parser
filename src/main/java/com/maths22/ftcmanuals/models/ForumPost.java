@@ -1,13 +1,16 @@
 package com.maths22.ftcmanuals.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.*;
 
 import java.time.LocalDateTime;
 
-@Document(indexName = "ftc-manuals-texts", type = "forum-post")
-@Setting(settingPath = "/elasticsearch/number-analyzer.json")
+@Document(indexName = "ftc-manuals-texts", type = "forum-post", shards = 1, replicas = 0)
 public class ForumPost {
+    @JsonProperty
+    private final String type = ForumPost.class.getSimpleName();
+
     @Id
     private String id;
     @Field(type = FieldType.keyword)
@@ -28,6 +31,7 @@ public class ForumPost {
     private String question;
     @Field(type = FieldType.text, analyzer = "english")
     private String answer;
+
     private String raw;
     @Field(type = FieldType.Date)
     private LocalDateTime posted;
