@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.maths22.ftcmanuals.models.Definition;
 import com.maths22.ftcmanuals.models.ForumPost;
 import com.maths22.ftcmanuals.models.Rule;
+import com.maths22.ftcmanuals.resources.Page;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,7 @@ public class TextRepository {
         this.objectMapper = objectMapper;
     }
 
-    public List<?> search(String text, Pageable pageable) {
+    public Page<?> search(String text, Pageable pageable) {
         QueryBuilder qb = multiMatchQuery(text)
                 .field("number", 4)
                 .field("title", 3)
@@ -48,7 +49,7 @@ public class TextRepository {
                 .build();
 
         return elasticsearchTemplate.query(searchQuery, searchResponse -> {
-            List<Object> ret = new ArrayList<>();
+            Page<Object> ret = new Page<>();
             searchResponse.getHits().iterator().forEachRemaining((hit) -> {
                 Class<?> type;
                 switch (hit.getType()) {
@@ -73,6 +74,10 @@ public class TextRepository {
                     e.printStackTrace();
                 }
             });
+            ret.setPageNumber(pageable.getPageNumber());
+            long totalResults = searchResponse.getHits().totalHits;
+            ret.setTotalSize(totalResults);
+            ret.setTotalPageCount((totalResults + pageable.getPageSize() - 1) / pageable.getPageSize());
             return ret;
         });
     }

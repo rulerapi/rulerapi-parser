@@ -4,12 +4,14 @@ import com.maths22.ftcmanuals.repositories.elasticsearch.DefinitionEsRepository;
 import com.maths22.ftcmanuals.repositories.elasticsearch.ForumPostEsRepository;
 import com.maths22.ftcmanuals.repositories.elasticsearch.RuleEsRepository;
 import com.maths22.ftcmanuals.repositories.elasticsearch.TextRepository;
+import com.maths22.ftcmanuals.resources.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -42,9 +44,10 @@ public class TextsController {
         return "texts/list";
     }
 
+    @CrossOrigin
     @RequestMapping(value = "/texts/search/{query}", produces = "application/json")
     @ResponseBody
-    public List<?> list(@PageableDefault Pageable pageable, @PathVariable String query) {
+    public Page<?> list(@PageableDefault Pageable pageable, @PathVariable String query) {
         return textRepository.search(query, pageable);
     }
 }
