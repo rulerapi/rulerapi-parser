@@ -18,6 +18,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
@@ -81,9 +83,6 @@ public class VBulletinForumImporter {
         String postNo = postElement.getElementsByClass("b-post__count").first().text();
         ret.setId("ftcForum:" + category.hashCode() + ":" + postNo);
         ret.setPostNo(Integer.parseInt(postNo.replaceAll("[^0-9]","")));
-        ret.setTitle(postElement
-                .getElementsByClass("js-post__content-text").first()
-                .childNode(0).outerHtml().trim());
         ret.setPosted(LocalDateTime.parse(postElement
                 .getElementsByClass("b-post__timestamp").first()
                 .getElementsByTag("time").first()
@@ -91,6 +90,22 @@ public class VBulletinForumImporter {
 
         boolean foundQuestion = false;
         try {
+            Pattern title = Pattern.compile("(subject:)([^<>]*)", Pattern.CASE_INSENSITIVE);
+            String question = postElement
+                    .getElementsByClass("js-post__content-text").first()
+                    .getElementsByClass("bbcode_quote").first()
+                    .getElementsByClass("message").first()
+                    .html();
+            Matcher titleMatcher = title.matcher(question);
+            if(titleMatcher.find()) {
+                ret.setTitle(titleMatcher.group(2).trim());
+            }
+            //Remove title
+            postElement
+                    .getElementsByClass("js-post__content-text").first()
+                    .getElementsByClass("bbcode_quote").first()
+                    .getElementsByClass("message").first()
+                    .getElementsByTag("b").first().remove();
             ret.setQuestion(postElement
                     .getElementsByClass("js-post__content-text").first()
                     .getElementsByClass("bbcode_quote").first()

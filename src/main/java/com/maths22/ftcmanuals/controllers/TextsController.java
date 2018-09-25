@@ -11,10 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -45,9 +42,9 @@ public class TextsController {
     }
 
     @CrossOrigin
-    @RequestMapping(value = "/texts/search/{query}", produces = "application/json")
+    @RequestMapping(value = "/texts/search", produces = "application/json")
     @ResponseBody
-    public Page<?> list(@PageableDefault Pageable pageable, @PathVariable String query) {
+    public Page<?> list(@PageableDefault Pageable pageable, @RequestBody String query) {
         return textRepository.search(query, pageable);
     }
 }

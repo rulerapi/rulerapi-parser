@@ -7,7 +7,10 @@ import com.maths22.ftcmanuals.repositories.jpa.GameManualSourceRepository;
 import com.maths22.ftcmanuals.repositories.jpa.VBulletinForumSourceRepository;
 import com.maths22.ftcmanuals.services.GameManualImporter;
 import com.maths22.ftcmanuals.services.VBulletinForumImporter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +29,8 @@ public class SourceController {
     private final VBulletinForumImporter vBulletinForumImporter;
 
     private final GameManualImporter gameManualImporter;
+
+    private static final Logger log = LoggerFactory.getLogger(SourceController.class);
 
     @Autowired
     public SourceController(GameManualSourceRepository gameManualSourceRepository, VBulletinForumSourceRepository vBulletinForumSourceRepository, VBulletinForumImporter vBulletinForumImporter, GameManualImporter gameManualImporter) {
@@ -71,7 +76,9 @@ public class SourceController {
     }
 
     @RequestMapping("/sources/ingestAll")
-    public String importGameManual(HttpServletRequest request) {
+    @Scheduled(fixedDelay = 3600000)
+    public String importGameManual() {
+        log.info("Importing FTC Data");
         List<GameManualSource> gmSrcs = gameManualSourceRepository.findAll();
         gmSrcs.forEach((src) -> {
             src.setLastRetrieved(LocalDateTime.now());
@@ -91,8 +98,7 @@ public class SourceController {
         });
 
 
-        String referer = request.getHeader("Referer");
-        return "redirect:" + referer;
+        return null;
     }
 
 }

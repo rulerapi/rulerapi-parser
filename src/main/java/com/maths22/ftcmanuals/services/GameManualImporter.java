@@ -79,7 +79,9 @@ public class GameManualImporter {
         //            String name = m.group(2);
         //            System.out.println(Arrays.toString(pieces) + ": " + name);
         //        });
-
+        if(sectionHeadings.get(0).toLowerCase().equals("contents")) {
+            sectionHeadings.remove(0);
+        }
         //Body starts w/ second instance of heading (outside of TOC)
         Matcher bodyMatcher = Pattern.compile(Pattern.quote(sectionHeadings.get(0)) + ".*?" + Pattern.quote(sectionHeadings.get(sectionHeadings.size() - 1)) + ".*?" + "(" + Pattern.quote(sectionHeadings.get(0)) + ".*)", Pattern.DOTALL).matcher(content);
         // TODO: handle failure
@@ -145,22 +147,22 @@ public class GameManualImporter {
         String remainder = section;
         //Make the space after the dash optional due to a typo in the manual
         while (true) {
-            Matcher defMatcher = Pattern.compile("^([^\\r\\n\\uF0B7]*?) [-–] ?(.*?)^([^\\r\\n\\uF0B7]*? [-–] ?.*)", Pattern.DOTALL | Pattern.MULTILINE).matcher(remainder);
+            Matcher defMatcher = Pattern.compile("^([^\\r\\n\\uF0B7\\u2022]*?) [-–] ?(.*?)^([^\\r\\n\\uF0B7\\u2022]*? [-–] ?.*)", Pattern.DOTALL | Pattern.MULTILINE).matcher(remainder);
             done = !defMatcher.find();
             if (done) break;
             String term = defMatcher.group(1);
-            String body = defMatcher.group(2);
+            String body = defMatcher.group(2).replaceAll("[\\r\\n](?!\\s*\\u2022)", " ");
             Definition def = new Definition();
             def.setTitle(term);
             def.setBody(body);
             ret.add(def);
             remainder = defMatcher.group(3);
         }
-        Matcher lastMatcher = Pattern.compile("^([^\\r\\n\\uF0B7]*?) [-–] ?(.*)", Pattern.DOTALL | Pattern.MULTILINE).matcher(remainder);
+        Matcher lastMatcher = Pattern.compile("^([^\\r\\n\\uF0B7\\u2022]*?) [-–] ?(.*)", Pattern.DOTALL | Pattern.MULTILINE).matcher(remainder);
         done = !lastMatcher.find();
         if (done) return ret;
         String term = lastMatcher.group(1);
-        String body = lastMatcher.group(2);
+        String body = lastMatcher.group(2).replaceAll("[\\r\\n]+(?!\\s*)", " ");
         Definition def = new Definition();
         def.setTitle(term);
         def.setBody(body);
