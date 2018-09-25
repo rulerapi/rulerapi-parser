@@ -11,4 +11,5 @@ public class FtcManualsApplication {
     public static void main(String[] args) {
         SpringApplication.run(FtcManualsApplication.class, args);
     }
+
 }

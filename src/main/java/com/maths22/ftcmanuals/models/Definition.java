@@ -5,7 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.*;
 import org.springframework.data.elasticsearch.core.completion.Completion;
 
-@Document(indexName = "ftc-manuals-texts", type = "definition", shards = 1, replicas = 0)
+@Document(indexName = "ftc-manuals-texts", type = "text", shards = 1, replicas = 0)
 public class Definition {
     @JsonProperty
     private final String type = Definition.class.getSimpleName();
@@ -13,18 +13,18 @@ public class Definition {
     @Id
     private String id;
     @MultiField(
-            mainField = @Field(type = FieldType.text, analyzer = "english"),
-            otherFields = {@InnerField(suffix = "keyword", type = FieldType.keyword)}
+            mainField = @Field(type = FieldType.Text, analyzer = "english"),
+            otherFields = {@InnerField(suffix = "keyword", type = FieldType.Keyword)}
     )
     private String category;
     @MultiField(
-            mainField = @Field(type = FieldType.text, analyzer = "english"),
-            otherFields = {@InnerField(suffix = "keyword", type = FieldType.keyword)}
+            mainField = @Field(type = FieldType.Text, analyzer = "english"),
+            otherFields = {@InnerField(suffix = "keyword", type = FieldType.Keyword)}
     )
     private String title;
-    @Field(type = FieldType.text, analyzer = "english")
+    @Field(type = FieldType.Text, analyzer = "english")
     private String body;
-    @Field(type = FieldType.keyword)
+    @Field(type = FieldType.Keyword)
     private String version;
     @CompletionField(analyzer = "standard", searchAnalyzer = "standard")
     private Completion suggest;

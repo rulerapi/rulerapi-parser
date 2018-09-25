@@ -52,14 +52,14 @@ public class TextRepository {
             Page<Object> ret = new Page<>();
             searchResponse.getHits().iterator().forEachRemaining((hit) -> {
                 Class<?> type;
-                switch (hit.getType()) {
-                    case "rule":
+                switch ((String) hit.getSource().get("type")) {
+                    case "Rule":
                         type = Rule.class;
                         break;
-                    case "definition":
+                    case "Definition":
                         type = Definition.class;
                         break;
-                    case "forum-post":
+                    case "ForumPost":
                         type = ForumPost.class;
                         break;
                     default:

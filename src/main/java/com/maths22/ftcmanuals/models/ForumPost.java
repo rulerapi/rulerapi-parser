@@ -6,36 +6,36 @@ import org.springframework.data.elasticsearch.annotations.*;
 
 import java.time.LocalDateTime;
 
-@Document(indexName = "ftc-manuals-texts", type = "forum-post", shards = 1, replicas = 0)
+@Document(indexName = "ftc-manuals-texts", type = "text", shards = 1, replicas = 0)
 public class ForumPost {
     @JsonProperty
     private final String type = ForumPost.class.getSimpleName();
 
     @Id
     private String id;
-    @Field(type = FieldType.keyword)
+    @Field(type = FieldType.Keyword)
     private String forum;
     @MultiField(
-            mainField = @Field(type = FieldType.text, analyzer = "english"),
-            otherFields = {@InnerField(suffix = "keyword", type = FieldType.keyword)}
+            mainField = @Field(type = FieldType.Text, analyzer = "english"),
+            otherFields = {@InnerField(suffix = "keyword", type = FieldType.Keyword)}
     )
     private String category;
     @Field(type = FieldType.Integer)
     private int postNo;
     @MultiField(
-            mainField = @Field(type = FieldType.text, analyzer = "english"),
-            otherFields = {@InnerField(suffix = "keyword", type = FieldType.keyword)}
+            mainField = @Field(type = FieldType.Text, analyzer = "english"),
+            otherFields = {@InnerField(suffix = "keyword", type = FieldType.Keyword)}
     )
     private String title;
-    @Field(type = FieldType.text, analyzer = "english")
+    @Field(type = FieldType.Text, analyzer = "english")
     private String question;
-    @Field(type = FieldType.text, analyzer = "english")
+    @Field(type = FieldType.Text, analyzer = "english")
     private String answer;
 
     private String raw;
     @Field(type = FieldType.Date)
     private LocalDateTime posted;
-    @Field(type = FieldType.keyword)
+    @Field(type = FieldType.Keyword)
     private String version;
     // TODO: should these be searchable?
     private String author;

@@ -66,6 +66,8 @@ public class GameManualImporter {
         Matcher headingMatcher = Pattern.compile("^\\S+ .*?(?= ?\\.\\.+ [0-9]+)", Pattern.MULTILINE)
                 .matcher(content);
         while (headingMatcher.find()) {
+            // Don't include the contents themselves!
+            if(headingMatcher.group().trim().toLowerCase().equals("contents")) continue;
             sectionHeadings.add(headingMatcher.group().trim());
         }
         //      In case I want hierarchies at some point
@@ -167,6 +169,7 @@ public class GameManualImporter {
         def.setTitle(term);
         def.setBody(body);
         ret.add(def);
+        System.out.println(ret);
         return ret;
     }
 
