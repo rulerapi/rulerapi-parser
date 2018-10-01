@@ -1,15 +1,22 @@
 package com.maths22.ftcmanuals.repositories.elasticsearch;
 
 import com.maths22.ftcmanuals.models.Definition;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
+import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-import java.util.List;
-
+@RepositoryRestResource(exported = false)
 public interface DefinitionEsRepository extends ElasticsearchRepository<Definition, String> {
-    default Iterable<Definition> findAll(Sort sortVar) {
-        return findAllByType(Definition.class.getSimpleName(), sortVar);
+    default Page<Definition> findAll(Pageable pageVar) {
+        return findAllByType(Definition.class.getSimpleName(), pageVar);
     }
 
-    Iterable<Definition> findAllByType(String type, Sort sortVar);
+    Page<Definition> findAllByType(String type, Pageable pageVar);
+
+    default void deleteAll() {
+        deleteAllByType(Definition.class.getSimpleName());
+    }
+
+    void deleteAllByType(String type);
 }

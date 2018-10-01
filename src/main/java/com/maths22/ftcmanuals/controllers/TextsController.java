@@ -6,14 +6,16 @@ import com.maths22.ftcmanuals.repositories.elasticsearch.RuleEsRepository;
 import com.maths22.ftcmanuals.repositories.elasticsearch.TextRepository;
 import com.maths22.ftcmanuals.resources.Page;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class TextsController {
@@ -35,9 +37,12 @@ public class TextsController {
 
     @RequestMapping("/texts")
     public String list(Model model) {
-        model.addAttribute("definitions", definitionEsRepository.findAll(Sort.by("category.keyword", "title.keyword")));
-        model.addAttribute("rules", ruleEsRepository.findAll(Sort.by("number.keyword")));
-        model.addAttribute("posts", forumPostEsRepository.findAll(Sort.by("forum", "category.keyword", "postNo")));
+        Pageable defPage = PageRequest.of(0, 1000, Sort.by("category.keyword", "title.keyword"));
+        model.addAttribute("definitions", definitionEsRepository.findAll(defPage));
+        Pageable rulePage = PageRequest.of(0, 1000, Sort.by("number.keyword"));
+        model.addAttribute("rules", ruleEsRepository.findAll(rulePage));
+        Pageable forumPage = PageRequest.of(0, 1000, Sort.by("forum", "category.keyword", "postNo"));
+        model.addAttribute("posts", forumPostEsRepository.findAll(forumPage));
         return "texts/list";
     }
 

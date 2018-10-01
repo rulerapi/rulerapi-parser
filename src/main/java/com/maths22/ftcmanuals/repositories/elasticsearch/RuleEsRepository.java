@@ -1,17 +1,22 @@
 package com.maths22.ftcmanuals.repositories.elasticsearch;
 
-import com.maths22.ftcmanuals.models.Definition;
-import com.maths22.ftcmanuals.models.ForumPost;
 import com.maths22.ftcmanuals.models.Rule;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
+import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-import java.util.List;
-
+@RepositoryRestResource(exported = false)
 public interface RuleEsRepository extends ElasticsearchRepository<Rule, String> {
-    default Iterable<Rule> findAll(Sort sortVar) {
-        return findAllByType(Rule.class.getSimpleName(), sortVar);
+    default Page<Rule> findAll(Pageable pageVar) {
+        return findAllByType(Rule.class.getSimpleName(), pageVar);
     }
 
-    Iterable<Rule> findAllByType(String type, Sort sortVar);
+    Page<Rule> findAllByType(String type, Pageable pageVar);
+
+    default void deleteAll() {
+        deleteAllByType(Rule.class.getSimpleName());
+    }
+
+    void deleteAllByType(String type);
 }

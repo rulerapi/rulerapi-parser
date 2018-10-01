@@ -169,7 +169,6 @@ public class GameManualImporter {
         def.setTitle(term);
         def.setBody(body);
         ret.add(def);
-        System.out.println(ret);
         return ret;
     }
 
