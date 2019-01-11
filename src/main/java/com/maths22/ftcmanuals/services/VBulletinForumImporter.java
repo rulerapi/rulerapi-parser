@@ -16,10 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
@@ -77,42 +78,59 @@ public class VBulletinForumImporter {
     private ForumPost parse(String category, Element element) {
         ForumPost ret = new ForumPost();
 
-        ret.setAuthor(element.getElementsByClass("author").first().text());
-        Element postElement = element.getElementsByClass("b-post__content").first();
+        boolean isSubpost = element.getElementsByClass("author").size() == 0;
 
-        String postNo = postElement.getElementsByClass("b-post__count").first().text();
+        ret.setAuthor(element.getElementsByClass(isSubpost ? "OLD__author" : "author").first().text());
+        Element postElement = element.getElementsByClass(isSubpost ? "OLD__post-content" : "b-post__content").first();
+        if(isSubpost) postElement = postElement.parent();
+
+        String postNo = element.getElementsByClass("b-post__count").first().text();
         ret.setId("ftcForum:" + category.hashCode() + ":" + postNo);
-        ret.setPostNo(Integer.parseInt(postNo.replaceAll("[^0-9]","")));
-        ret.setPosted(LocalDateTime.parse(postElement
+        ret.setPostNo(postNo.replaceAll("[^0-9.]",""));
+//        ret.setPosted(LocalDateTime.parse(postElement
+//                .getElementsByClass("b-post__timestamp").first()
+//                .getElementsByTag("time").first()
+//                .attr("datetime")));
+        String dateString = element
                 .getElementsByClass("b-post__timestamp").first()
-                .getElementsByTag("time").first()
-                .attr("datetime")));
+                .text();
+
+        if(dateString.contains("Yesterday")) {
+            String timeString = dateString.replace("Yesterday, ", "");
+            ret.setPosted(LocalDateTime.of(LocalDate.now().minusDays(1),
+                    LocalTime.parse(timeString, DateTimeFormatter.ofPattern("hh:mm a"))));
+        } else if(dateString.contains("Today")) {
+            String timeString = dateString.replace("Today, ", "");
+            ret.setPosted(LocalDateTime.of(LocalDate.now(),
+                    LocalTime.parse(timeString, DateTimeFormatter.ofPattern("hh:mm a"))));
+        } else {
+            ret.setPosted(LocalDateTime.parse(dateString, DateTimeFormatter.ofPattern("MM-dd-yyy, hh:mm a")));
+        }
 
         boolean foundQuestion = false;
         try {
-            Pattern title = Pattern.compile("(subject:)([^<>]*)", Pattern.CASE_INSENSITIVE);
-            String question = postElement
-                    .getElementsByClass("js-post__content-text").first()
+            String title = postElement
+                    .getElementsByClass(isSubpost ? "OLD__post-content" : "js-post__content-text").first()
                     .getElementsByClass("bbcode_quote").first()
                     .getElementsByClass("message").first()
+                    .getElementsByTag("b").first()
                     .html();
-            Matcher titleMatcher = title.matcher(question);
-            if(titleMatcher.find()) {
-                ret.setTitle(titleMatcher.group(2).trim());
+            if(title.trim().length() > 0) {
+                ret.setTitle(title.trim());
             }
             //Remove title
             postElement
-                    .getElementsByClass("js-post__content-text").first()
+                    .getElementsByClass(isSubpost ? "OLD__post-content" : "js-post__content-text").first()
                     .getElementsByClass("bbcode_quote").first()
                     .getElementsByClass("message").first()
                     .getElementsByTag("b").first().remove();
             ret.setQuestion(postElement
-                    .getElementsByClass("js-post__content-text").first()
+                    .getElementsByClass(isSubpost ? "OLD__post-content" : "js-post__content-text").first()
                     .getElementsByClass("bbcode_quote").first()
                     .getElementsByClass("message").first()
                     .html());
             ret.setQuestionAuthor(postElement
-                    .getElementsByClass("js-post__content-text").first()
+                    .getElementsByClass(isSubpost ? "OLD__post-content" : "js-post__content-text").first()
                     .getElementsByClass("bbcode_quote").first()
                     .getElementsByClass("bbcode_postedby").first()
                     .getElementsByTag("strong").first()
@@ -125,7 +143,7 @@ public class VBulletinForumImporter {
         if(!foundQuestion) {
             try {
                 ret.setQuestion(postElement
-                        .getElementsByClass("js-post__content-text").first()
+                        .getElementsByClass(isSubpost ? "bbcode_container" : "js-post__content-text").first()
                         .getElementsByClass("bbcode_quote").first()
                         .getElementsByClass("quote_container").first()
                         .html());
@@ -134,7 +152,7 @@ public class VBulletinForumImporter {
             }
         }
 
-        Element cleanUp = postElement.getElementsByClass("js-post__content-text").first().clone();
+        Element cleanUp = postElement.getElementsByClass(isSubpost ? "OLD__post-content" : "js-post__content-text").first().clone();
         Element cleanUpQuote = cleanUp.getElementsByClass("bbcode_quote").first();
         if (cleanUpQuote != null) {
             Elements cleanUpQuoteParents = cleanUpQuote.parents();

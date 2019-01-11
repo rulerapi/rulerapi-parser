@@ -2,10 +2,11 @@ package com.maths22.ftcmanuals.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.elasticsearch.client.Client;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.EntityMapper;
 
 import java.io.IOException;
@@ -13,9 +14,11 @@ import java.io.IOException;
 @Configuration
 public class ElasticSearchConfig {
 
+
+
     @Bean
-    public ElasticsearchTemplate elasticsearchTemplate(Client client) {
-        return new ElasticsearchTemplate(client, new CustomEntityMapper());
+    public ElasticsearchOperations elasticsearchTemplate(RestHighLevelClient client) {
+        return new ElasticsearchRestTemplate(client, new CustomEntityMapper());
     }
 
     public static class CustomEntityMapper implements EntityMapper {

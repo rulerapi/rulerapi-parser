@@ -164,7 +164,7 @@ public class GameManualImporter {
         done = !lastMatcher.find();
         if (done) return ret;
         String term = lastMatcher.group(1);
-        String body = lastMatcher.group(2).replaceAll("[\\r\\n]+(?!\\s*)", " ");
+        String body = lastMatcher.group(2).replaceAll("[\\r\\n]+(?!\\s+)", " ");
         Definition def = new Definition();
         def.setTitle(term);
         def.setBody(body);
@@ -177,7 +177,7 @@ public class GameManualImporter {
         boolean done;
         String remainder = section;
         while (true) {
-            Matcher defMatcher = Pattern.compile("^(<[A-Z]+[0-9]+>) (.*?)^(^<[A-Z]+[0-9]+> .*)", Pattern.DOTALL | Pattern.MULTILINE).matcher(remainder);
+            Matcher defMatcher = Pattern.compile("^(<[A-Z]+[0-9]+>) ?(.*?)^(^<[A-Z]+[0-9]+> ?.*)", Pattern.DOTALL | Pattern.MULTILINE).matcher(remainder);
             done = !defMatcher.find();
             if (done) break;
             String number = defMatcher.group(1);
@@ -185,15 +185,15 @@ public class GameManualImporter {
             Rule rule = new Rule();
             rule.setNumber(number);
             if (bodyParts.length == 1) {
-                rule.setBody(bodyParts[0]);
+                rule.setBody(bodyParts[0].replaceAll("[\\r\\n]+(?!([a-z0-9]{1,3}\\.|[\\uF0B7\\u2022]))", " "));
             } else {
                 rule.setTitle(bodyParts[0]);
-                rule.setBody(bodyParts[1]);
+                rule.setBody(bodyParts[1].replaceAll("[\\r\\n]+(?!([a-z0-9]{1,3}\\.|[\\uF0B7\\u2022]))", " "));
             }
             ret.add(rule);
             remainder = defMatcher.group(3);
         }
-        Matcher lastMatcher = Pattern.compile("^(<[A-Z]+[0-9]+>) (.*)", Pattern.DOTALL | Pattern.MULTILINE).matcher(remainder);
+        Matcher lastMatcher = Pattern.compile("^(<[A-Z]+[0-9]+>) ?(.*)", Pattern.DOTALL | Pattern.MULTILINE).matcher(remainder);
         done = !lastMatcher.find();
         if (done) return ret;
         String title = lastMatcher.group(1);
@@ -201,10 +201,10 @@ public class GameManualImporter {
         Rule rule = new Rule();
         rule.setNumber(title);
         if (bodyParts.length == 1) {
-            rule.setBody(bodyParts[0]);
+            rule.setBody(bodyParts[0].replaceAll("[\\r\\n]+(?!([a-z0-9]{1,3}\\.|[\\uF0B7\\u2022]))", " "));
         } else {
             rule.setTitle(bodyParts[0]);
-            rule.setBody(bodyParts[1]);
+            rule.setBody(bodyParts[1].replaceAll("[\\r\\n]+(?!([a-z0-9]{1,3}\\.|[\\uF0B7\\u2022]))", " "));
         }
         ret.add(rule);
         return ret;

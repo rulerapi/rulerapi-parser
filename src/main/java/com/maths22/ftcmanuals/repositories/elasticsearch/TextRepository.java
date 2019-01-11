@@ -9,25 +9,23 @@ import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.elasticsearch.index.query.QueryBuilders.multiMatchQuery;
 
 @Component
 public class TextRepository {
 
-    private final ElasticsearchTemplate elasticsearchTemplate;
+    private final ElasticsearchOperations elasticsearchTemplate;
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public TextRepository(ElasticsearchTemplate elasticsearchTemplate, ObjectMapper objectMapper) {
+    public TextRepository(ElasticsearchOperations elasticsearchTemplate, ObjectMapper objectMapper) {
         this.elasticsearchTemplate = elasticsearchTemplate;
         this.objectMapper = objectMapper;
     }
@@ -52,7 +50,7 @@ public class TextRepository {
             Page<Object> ret = new Page<>();
             searchResponse.getHits().iterator().forEachRemaining((hit) -> {
                 Class<?> type;
-                switch ((String) hit.getSource().get("type")) {
+                switch ((String) hit.getSourceAsMap().get("type")) {
                     case "Rule":
                         type = Rule.class;
                         break;

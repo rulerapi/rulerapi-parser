@@ -28,7 +28,7 @@
     <tr th:each="def : ${definitions}">
         <td th:text="${def.title}"></td>
         <td th:text="${def.category}"></td>
-        <td th:text="${def.body}"></td>
+        <td style="white-space: pre-line" th:text="${def.body}"></td>
     </tr>
     </tbody>
 </table>
@@ -46,7 +46,7 @@
     <tr th:each="rule : ${rules}">
         <td th:text="${rule.number}"></td>
         <td th:text="${rule.title}"></td>
-        <td th:text="${rule.body}"></td>
+        <td style="white-space: pre-line" th:text="${rule.body}"></td>
     </tr>
     </tbody>
 </table>

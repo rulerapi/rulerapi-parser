@@ -20,8 +20,8 @@ public class ForumPost {
             otherFields = {@InnerField(suffix = "keyword", type = FieldType.Keyword)}
     )
     private String category;
-    @Field(type = FieldType.Integer)
-    private int postNo;
+    @Field(type = FieldType.Keyword)
+    private String postNo;
     @MultiField(
             mainField = @Field(type = FieldType.Text, analyzer = "english"),
             otherFields = {@InnerField(suffix = "keyword", type = FieldType.Keyword)}
@@ -114,11 +114,11 @@ public class ForumPost {
         this.posted = posted;
     }
 
-    public int getPostNo() {
+    public String getPostNo() {
         return postNo;
     }
 
-    public void setPostNo(int postNo) {
+    public void setPostNo(String postNo) {
         this.postNo = postNo;
     }
 
