@@ -3,13 +3,13 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.maths22</groupId>
-	<artifactId>ftc-manual-browser</artifactId>
+	<groupId>me.tweirtx</groupId>
+	<artifactId>rule-parser</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>ftc-manuals</name>
-	<description>FTC Manual Combination tool</description>
+	<name>manual-parser</name>
+	<description>FIRST Manual parsing tool</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -57,11 +57,7 @@
 			<artifactId>elasticsearch-rest-high-level-client</artifactId>
 			<version>6.5.4</version>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-elasticsearch</artifactId>
-			<version>3.2.0.M1</version>
-		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
