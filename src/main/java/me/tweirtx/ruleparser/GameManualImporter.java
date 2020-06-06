@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,12 +26,20 @@ public class GameManualImporter {
 
     private final Connection database;
 
+    private static final String manualURL = "https://firstinspires.com/whatever";
+
     public GameManualImporter(Connection database) {
         this.database = database;
     }
 
-    public static void main(String[] args) {
-        System.out.println("");
+    public static void main(String[] args) throws SQLException {
+        String url = "jdbc:postgresql://localhost/rules?user=rules&password=rulesapi";
+        Connection conn = DriverManager.getConnection(url);
+        GameManualImporter gameManualImporter = new GameManualImporter(conn);
+        GameManualSource gameManualSource = new GameManualSource();
+        gameManualSource.setUrl(manualURL);
+        boolean success = gameManualImporter.importGameManual(gameManualSource);
+        System.out.println("Parse success: " + success);
     }
 
     public boolean importGameManual(GameManualSource gm) {
@@ -49,7 +59,10 @@ public class GameManualImporter {
 
         Matcher versionMatcher = Pattern.compile("Revision ([0-9.]+)").matcher(content);
         // TODO: handle failure
-        versionMatcher.find();
+        boolean b = versionMatcher.find();
+        if (b) {
+            System.out.println("Found version");
+        }
         String version = versionMatcher.group(1);
 
         //Remove right-hand header/footer
@@ -82,7 +95,10 @@ public class GameManualImporter {
         //Body starts w/ second instance of heading (outside of TOC)
         Matcher bodyMatcher = Pattern.compile(Pattern.quote(sectionHeadings.get(0)) + ".*?" + Pattern.quote(sectionHeadings.get(sectionHeadings.size() - 1)) + ".*?" + "(" + Pattern.quote(sectionHeadings.get(0)) + ".*)", Pattern.DOTALL).matcher(content);
         // TODO: handle failure
-        bodyMatcher.find();
+        boolean success = bodyMatcher.find();
+        if (success) {
+            System.out.println("Body match success");
+        }
         String bodyContent = bodyMatcher.group(1);
 
         Map<String, String> sections = getStringsBetween(sectionHeadings, bodyContent);
@@ -97,7 +113,11 @@ public class GameManualImporter {
                 rule.setVersion(version);
             }).collect(Collectors.toList());
             if (rules.size() > 0) {
-                // Save to Postgres
+                try {
+                    database.prepareStatement("INSERT shit INTO db;");
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
             }
         });
 
@@ -112,14 +132,18 @@ public class GameManualImporter {
             String hdg2 = headings.get(i + 1);
             Matcher sectionMatcher = Pattern.compile("^[ \t]*(" + Pattern.quote(hdg1) + ".*)^[ \t]*" + Pattern.quote(hdg2), Pattern.DOTALL | Pattern.MULTILINE).matcher(content);
             // TODO: handle failure
-            sectionMatcher.find();
+            if (sectionMatcher.find()) {
+                System.out.println("Section matched");
+            }
             String section = sectionMatcher.group(1);
             ret.put(hdg1, section);
         }
         String lastHdg = headings.get(headings.size() - 1);
         Matcher lastSectionMatcher = Pattern.compile("^[ \t]*(" + Pattern.quote(lastHdg) + ".*)", Pattern.DOTALL | Pattern.MULTILINE).matcher(content);
         // TODO: handle failure
-        lastSectionMatcher.find();
+        if (lastSectionMatcher.find()) {
+            System.out.println("Last section matched");
+        }
         String lastSection = lastSectionMatcher.group(1);
         ret.put(lastHdg, lastSection);
         return ret;
