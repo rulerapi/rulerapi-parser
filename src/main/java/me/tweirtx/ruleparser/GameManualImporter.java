@@ -1,20 +1,16 @@
-package com.maths22.ftcmanuals.services;
+package me.tweirtx.ruleparser;
 
-import com.maths22.ftcmanuals.models.Definition;
 import com.maths22.ftcmanuals.models.GameManualSource;
 import com.maths22.ftcmanuals.models.Rule;
-import com.maths22.ftcmanuals.repositories.elasticsearch.DefinitionEsRepository;
-import com.maths22.ftcmanuals.repositories.elasticsearch.RuleEsRepository;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,18 +19,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@Component
 public class GameManualImporter {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    private final DefinitionEsRepository definitionEsRepository;
+    private final Connection database;
 
-    private final RuleEsRepository ruleEsRepository;
+    public GameManualImporter(Connection database) {
+        this.database = database;
+    }
 
-    @Autowired
-    public GameManualImporter(DefinitionEsRepository definitionEsRepository, RuleEsRepository ruleEsRepository) {
-        this.definitionEsRepository = definitionEsRepository;
-        this.ruleEsRepository = ruleEsRepository;
+    public static void main(String[] args) {
+        System.out.println("");
     }
 
     public boolean importGameManual(GameManualSource gm) {
@@ -93,19 +88,6 @@ public class GameManualImporter {
         Map<String, String> sections = getStringsBetween(sectionHeadings, bodyContent);
 
 
-        List<String> definitionHeadings = sectionHeadings.stream().filter((s) -> s.contains("Definitions")).collect(Collectors.toList());
-        definitionHeadings.forEach((s) -> {
-            String cleanHeading = s.replace("[0-9.]+\\s*", "");
-            List<Definition> definitions = parseDefinitions(sections.get(s)).stream().peek((def) -> {
-                def.setCategory(cleanHeading);
-                def.setId(cleanHeading.hashCode() + ":" + def.getTitle().hashCode());
-                def.setVersion(version);
-            }).collect(Collectors.toList());
-            if (definitions.size() > 0) {
-                definitionEsRepository.saveAll(definitions);
-            }
-        });
-
         List<String> ruleHeadings = sectionHeadings.stream().filter((s) -> s.contains("Rules")).collect(Collectors.toList());
         ruleHeadings.forEach((s) -> {
             String cleanHeading = s.replace("[0-9.]+\\s*", "");
@@ -115,7 +97,7 @@ public class GameManualImporter {
                 rule.setVersion(version);
             }).collect(Collectors.toList());
             if (rules.size() > 0) {
-                ruleEsRepository.saveAll(rules);
+                // Save to Postgres
             }
         });
 
@@ -140,35 +122,6 @@ public class GameManualImporter {
         lastSectionMatcher.find();
         String lastSection = lastSectionMatcher.group(1);
         ret.put(lastHdg, lastSection);
-        return ret;
-    }
-
-    private List<Definition> parseDefinitions(String section) {
-        List<Definition> ret = new ArrayList<>();
-        boolean done;
-        String remainder = section;
-        //Make the space after the dash optional due to a typo in the manual
-        while (true) {
-            Matcher defMatcher = Pattern.compile("^([^\\r\\n\\uF0B7\\u2022]*?) [-–] ?(.*?)^([^\\r\\n\\uF0B7\\u2022]*? [-–] ?.*)", Pattern.DOTALL | Pattern.MULTILINE).matcher(remainder);
-            done = !defMatcher.find();
-            if (done) break;
-            String term = defMatcher.group(1);
-            String body = defMatcher.group(2).replaceAll("[\\r\\n](?!\\s*\\u2022)", " ");
-            Definition def = new Definition();
-            def.setTitle(term);
-            def.setBody(body);
-            ret.add(def);
-            remainder = defMatcher.group(3);
-        }
-        Matcher lastMatcher = Pattern.compile("^([^\\r\\n\\uF0B7\\u2022]*?) [-–] ?(.*)", Pattern.DOTALL | Pattern.MULTILINE).matcher(remainder);
-        done = !lastMatcher.find();
-        if (done) return ret;
-        String term = lastMatcher.group(1);
-        String body = lastMatcher.group(2).replaceAll("[\\r\\n]+(?!\\s+)", " ");
-        Definition def = new Definition();
-        def.setTitle(term);
-        def.setBody(body);
-        ret.add(def);
         return ret;
     }
 
