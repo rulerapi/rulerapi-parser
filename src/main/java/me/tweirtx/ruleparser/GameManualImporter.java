@@ -26,14 +26,15 @@ public class GameManualImporter {
 
     private final Connection database;
 
-    private static final String manualURL = "https://firstinspires.com/whatever";
+    private static final String manualURL = "https://www.firstinspires.org/sites/default/files/uploads/resource_library/ftc/game-manual-part-1.pdf";
 
     public GameManualImporter(Connection database) {
         this.database = database;
     }
 
     public static void main(String[] args) throws SQLException {
-        String url = "jdbc:postgresql://localhost/rules?user=rules&password=rulesapi";
+        //String url = "jdbc:postgresql://localhost/rules?user=rules&password=rulesapi";
+        String url = "jdbc:sqlite:test.db";
         Connection conn = DriverManager.getConnection(url);
         GameManualImporter gameManualImporter = new GameManualImporter(conn);
         GameManualSource gameManualSource = new GameManualSource();
@@ -114,6 +115,7 @@ public class GameManualImporter {
             }).collect(Collectors.toList());
             if (rules.size() > 0) {
                 try {
+                    System.out.println(rules);
                     database.prepareStatement("INSERT shit INTO db;");
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
@@ -135,8 +137,13 @@ public class GameManualImporter {
             if (sectionMatcher.find()) {
                 System.out.println("Section matched");
             }
-            String section = sectionMatcher.group(1);
-            ret.put(hdg1, section);
+            try {
+                String section = sectionMatcher.group(1);
+                ret.put(hdg1, section);
+            }
+            catch (IllegalStateException e) {
+                System.out.println("Oops");
+            }
         }
         String lastHdg = headings.get(headings.size() - 1);
         Matcher lastSectionMatcher = Pattern.compile("^[ \t]*(" + Pattern.quote(lastHdg) + ".*)", Pattern.DOTALL | Pattern.MULTILINE).matcher(content);
