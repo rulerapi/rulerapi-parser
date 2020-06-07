@@ -28,6 +28,8 @@ public class GameManualImporter {
 
     private static final String manualURL = "https://www.firstinspires.org/sites/default/files/uploads/resource_library/ftc/game-manual-part-1.pdf";
 
+    private final String ruleset = "ftc2020";
+
     public GameManualImporter(Connection database) {
         this.database = database;
     }
@@ -115,8 +117,9 @@ public class GameManualImporter {
             }).collect(Collectors.toList());
             if (rules.size() > 0) {
                 try {
-                    System.out.println(rules);
-                    database.prepareStatement("INSERT shit INTO db;");
+                    String ruleStr = rules.toString().replaceAll("\\{gametag}", ruleset);
+                    System.out.println(ruleStr);
+                    database.prepareStatement("INSERT INTO rules VALUES (" + ruleStr + ");");
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
                 }

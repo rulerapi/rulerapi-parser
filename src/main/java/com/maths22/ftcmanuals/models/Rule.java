@@ -63,7 +63,7 @@ public class Rule {
     }
 
     public void setNumber(String number) {
-        this.number = number;
+        this.number = number.replace('<', ' ').replace('>', ' ').trim();
         this.suggest = new Completion(new String[]{number});
     }
 
@@ -85,6 +85,11 @@ public class Rule {
 
     public Completion getSuggest() {
         return suggest;
+    }
+
+    @Override
+    public String toString() {
+        return "('" + getNumber() + "', '" + getBody() + "', '{gametag}')";
     }
 
     protected void setSuggest(Completion suggest) {
