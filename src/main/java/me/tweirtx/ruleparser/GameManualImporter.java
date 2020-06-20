@@ -11,10 +11,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -120,13 +117,17 @@ public class GameManualImporter {
             }).collect(Collectors.toList());
             if (rules.size() > 0) {
                 try {
-                    String ruleStr = rules.toString().replaceAll("\\{gametag}", ruleset).replaceAll("\\[", "").replaceAll("]", "");
-                    FileWriter file = new FileWriter("rules.sql");
-                    file.write(ruleStr);
-                    file.close();
+                    //String ruleStr = rules.toString().replaceAll("\\{gametag}", ruleset).replaceAll("\\[", "").replaceAll("]", "");
+                    Rule[] rules1 = new Rule[rules.size()];
+                    for (int x = 0; x < rules.size(); x++) {
+                        rules1[x] = rules.get(x);
+                    }
                     database.setAutoCommit(false);
                     PreparedStatement prepsta = database.prepareStatement("INSERT INTO rules (rule_id, ruleset, rule_text) VALUES ?");
-                    prepsta.setString(0, ruleStr);
+                    prepsta.setArray(1, rules1); // Here's the bug Gabe
+                    FileWriter file = new FileWriter("rules.sql");
+                    file.write(prepsta.toString());
+                    file.close();
                     prepsta.execute();
                     database.commit();
                 } catch (SQLException | IOException throwables) {
