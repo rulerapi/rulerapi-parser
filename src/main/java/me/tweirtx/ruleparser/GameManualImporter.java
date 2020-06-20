@@ -38,8 +38,8 @@ public class GameManualImporter {
     }
 
     public static void main(String[] args) throws SQLException {
-        //String url = "jdbc:postgresql://localhost/rules?user=rules&password=rulesapi";
-        String url = "jdbc:sqlite:test.db";
+        String url = "jdbc:postgresql://localhost/rules?user=rules&password=rulesapi";
+        //String url = "jdbc:sqlite:test.db";
         Connection conn = DriverManager.getConnection(url);
         GameManualImporter gameManualImporter = new GameManualImporter(conn);
         GameManualSource gameManualSource = new GameManualSource();
