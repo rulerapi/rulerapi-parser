@@ -7,11 +7,13 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,14 +26,15 @@ import java.util.stream.Collectors;
 public class GameManualImporter {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    private final Connection database;
+    private Connection database;
 
     private static final String manualURL = "https://www.firstinspires.org/sites/default/files/uploads/resource_library/ftc/game-manual-part-1.pdf";
 
     private final String ruleset = "ftc2020";
 
-    public GameManualImporter(Connection database) {
+    public GameManualImporter(Connection database) throws SQLException {
         this.database = database;
+        this.database.setAutoCommit(false);
     }
 
     public static void main(String[] args) throws SQLException {
@@ -117,10 +120,16 @@ public class GameManualImporter {
             }).collect(Collectors.toList());
             if (rules.size() > 0) {
                 try {
-                    String ruleStr = rules.toString().replaceAll("\\{gametag}", ruleset);
-                    System.out.println(ruleStr);
-                    database.prepareStatement("INSERT INTO rules VALUES (" + ruleStr + ");");
-                } catch (SQLException throwables) {
+                    String ruleStr = rules.toString().replaceAll("\\{gametag}", ruleset).replaceAll("\\[", "").replaceAll("]", "");
+                    FileWriter file = new FileWriter("rules.sql");
+                    file.write(ruleStr);
+                    file.close();
+                    database.setAutoCommit(false);
+                    PreparedStatement prepsta = database.prepareStatement("INSERT INTO rules (rule_id, ruleset, rule_text) VALUES ?");
+                    prepsta.setString(0, ruleStr);
+                    prepsta.execute();
+                    database.commit();
+                } catch (SQLException | IOException throwables) {
                     throwables.printStackTrace();
                 }
             }
