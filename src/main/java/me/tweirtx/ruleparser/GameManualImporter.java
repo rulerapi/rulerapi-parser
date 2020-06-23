@@ -4,6 +4,7 @@ import com.maths22.ftcmanuals.models.GameManualSource;
 import com.maths22.ftcmanuals.models.Rule;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.postgresql.jdbc.PgArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,6 @@ public class GameManualImporter {
 
     public static void main(String[] args) throws SQLException {
         String url = "jdbc:postgresql://localhost/rules?user=rules&password=rulesapi";
-        //String url = "jdbc:sqlite:test.db";
         Connection conn = DriverManager.getConnection(url);
         GameManualImporter gameManualImporter = new GameManualImporter(conn);
         GameManualSource gameManualSource = new GameManualSource();
@@ -117,18 +117,19 @@ public class GameManualImporter {
             }).collect(Collectors.toList());
             if (rules.size() > 0) {
                 try {
-                    //String ruleStr = rules.toString().replaceAll("\\{gametag}", ruleset).replaceAll("\\[", "").replaceAll("]", "");
-                    Rule[] rules1 = new Rule[rules.size()];
-                    for (int x = 0; x < rules.size(); x++) {
-                        rules1[x] = rules.get(x);
-                    }
                     database.setAutoCommit(false);
-                    PreparedStatement prepsta = database.prepareStatement("INSERT INTO rules (rule_id, ruleset, rule_text) VALUES ?");
-                    prepsta.setArray(1, rules1); // Here's the bug Gabe
-                    FileWriter file = new FileWriter("rules.sql");
-                    file.write(prepsta.toString());
-                    file.close();
-                    prepsta.execute();
+                    for (Rule rule : rules) {
+                        System.out.println(rule);
+                        PreparedStatement prepsta = database.prepareStatement("INSERT INTO rules (rule_id, ruleset, rule_text) VALUES (?, ?, ?)" +
+                                "ON CONFLICT (rule_id) DO UPDATE SET rule_text = rules.rule_text || excluded.rule_text;"); //TODO figure out correct conflict spec
+                        prepsta.setString(1, rule.getNumber());
+                        prepsta.setString(2, ruleset);
+                        prepsta.setString(3, rule.getBody());
+                        FileWriter file = new FileWriter("rules.sql");
+                        file.write(prepsta.toString());
+                        file.close();
+                        prepsta.execute();
+                    }
                     database.commit();
                 } catch (SQLException | IOException throwables) {
                     throwables.printStackTrace();
@@ -146,7 +147,6 @@ public class GameManualImporter {
             String hdg1 = headings.get(i);
             String hdg2 = headings.get(i + 1);
             Matcher sectionMatcher = Pattern.compile("^[ \t]*(" + Pattern.quote(hdg1) + ".*)^[ \t]*" + Pattern.quote(hdg2), Pattern.DOTALL | Pattern.MULTILINE).matcher(content);
-            // TODO: handle failure
             if (sectionMatcher.find()) {
                 System.out.println("Section matched");
             }
