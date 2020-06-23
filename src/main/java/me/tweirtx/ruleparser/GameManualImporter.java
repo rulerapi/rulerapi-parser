@@ -121,7 +121,7 @@ public class GameManualImporter {
                     for (Rule rule : rules) {
                         System.out.println(rule);
                         PreparedStatement prepsta = database.prepareStatement("INSERT INTO rules (rule_id, ruleset, rule_text) VALUES (?, ?, ?)" +
-                                "ON CONFLICT (rule_id) DO UPDATE SET rule_text = rules.rule_text || excluded.rule_text;"); //TODO figure out correct conflict spec
+                                "ON CONFLICT (rule_id, ruleset) DO UPDATE SET rule_text = rules.rule_text || excluded.rule_text;"); //TODO figure out correct conflict spec
                         prepsta.setString(1, rule.getNumber());
                         prepsta.setString(2, ruleset);
                         prepsta.setString(3, rule.getBody());
